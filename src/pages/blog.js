@@ -3,12 +3,11 @@ import Link from 'gatsby-link'
 import get from 'lodash/get'
 import Helmet from 'react-helmet'
 import styles from './blog.module.css'
-import ArticlePreview from '../components/article-preview'
 
 class BlogIndex extends React.Component {
   render() {
     const siteTitle = get(this, 'props.data.site.siteMetadata.title')
-    const posts = get(this, 'props.data.allContentfulBlogPost.edges')
+    const posts = get(this, 'props.data.allContentfulArticles.edges')
 
     return (
       <div style={{ background: '#fff' }}>
@@ -21,8 +20,18 @@ class BlogIndex extends React.Component {
           <ul className="article-list">
             {posts.map(({ node }) => {
               return (
-                <li key={node.slug}>
-                  <ArticlePreview article={node} />
+                <li>
+                  <div className={styles.preview}>
+                    <h3 className={styles.previewTitle}>
+                      <Link to={`/blog/${article.slug}`}>{article.title}</Link>
+                    </h3>
+                    <small>{article.originalPublicationDate}</small>
+                    <p
+                      dangerouslySetInnerHTML={{
+                        __html: article.description.childMarkdownRemark.html,
+                      }}
+                    />
+                  </div>
                 </li>
               )
             })}
@@ -37,22 +46,14 @@ export default BlogIndex
 
 export const pageQuery = graphql`
   query BlogIndexQuery {
-    allContentfulBlogPost(sort: { fields: [publishDate], order: DESC }) {
+    allContentfulArticle {
       edges {
         node {
           title
           slug
-          publishDate(formatString: "MMMM Do, YYYY")
-          tags
-          heroImage {
-            sizes(maxWidth: 350, maxHeight: 196, resizingBehavior: SCALE) {
-              ...GatsbyContentfulSizes_withWebp
-            }
-          }
-          description {
-            childMarkdownRemark {
-              html
-            }
+          originalPublicationDate
+          body {
+            nodeType
           }
         }
       }
